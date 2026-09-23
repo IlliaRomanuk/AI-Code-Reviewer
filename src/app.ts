@@ -1,5 +1,8 @@
 import express, { type Application } from "express";
-import { healthRouter } from "./routes/health";
+import cookieParser from "cookie-parser";
+import { healthRouter } from "./routes/health.js";
+import { authRouter } from "./routes/auth.js";
+import { sessionMiddleware } from "./auth/middleware.js";
 
 /**
  * Собирает Express-приложение без запуска listen().
@@ -10,7 +13,11 @@ export function createApp(): Application {
   const app = express();
 
   app.use(express.json());
+  app.use(cookieParser());
+  app.use(sessionMiddleware);
+
   app.use(healthRouter);
+  app.use(authRouter);
 
   return app;
 }

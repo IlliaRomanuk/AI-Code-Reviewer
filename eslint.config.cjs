@@ -11,7 +11,7 @@ module.exports = tseslint.config(
     ignores: ["dist/**", "node_modules/**"],
   },
   {
-    files: ["eslint.config.js"],
+    files: ["eslint.config.cjs"],
     languageOptions: {
       globals: { require: "readonly", module: "readonly" },
     },
