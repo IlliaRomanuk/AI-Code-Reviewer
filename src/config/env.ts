@@ -18,6 +18,10 @@ export interface AppConfig {
     clientId: string;
     clientSecret: string;
   };
+  ai: {
+    anthropicApiKey: string;
+    model: string;
+  };
 }
 
 function readConfig(): AppConfig {
@@ -38,6 +42,10 @@ function readConfig(): AppConfig {
       webhookSecret: process.env.GITHUB_WEBHOOK_SECRET ?? "",
       clientId: process.env.GITHUB_APP_CLIENT_ID ?? "",
       clientSecret: process.env.GITHUB_APP_CLIENT_SECRET ?? "",
+    },
+    ai: {
+      anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
+      model: process.env.AI_MODEL ?? "claude-sonnet-4-6",
     },
   };
 }
