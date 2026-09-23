@@ -1,10 +1,13 @@
 import express, { type Application } from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import { createNodeMiddleware } from "@octokit/webhooks";
 import { healthRouter } from "./routes/health.js";
 import { authRouter } from "./routes/auth.js";
+import { apiRouter } from "./routes/api.js";
 import { sessionMiddleware } from "./auth/middleware.js";
 import { webhooks } from "./github/webhooks.js";
+import { config } from "./config/env.js";
 
 const WEBHOOK_PATH = "/webhooks/github";
 
@@ -20,12 +23,14 @@ export function createApp(): Application {
   // чтобы проверить HMAC-подпись запроса (X-Hub-Signature-256).
   app.use(createNodeMiddleware(webhooks, { path: WEBHOOK_PATH }));
 
+  app.use(cors({ origin: config.frontendUrl, credentials: true }));
   app.use(express.json());
   app.use(cookieParser());
   app.use(sessionMiddleware);
 
   app.use(healthRouter);
   app.use(authRouter);
+  app.use(apiRouter);
 
   return app;
 }
