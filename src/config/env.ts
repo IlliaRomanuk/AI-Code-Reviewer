@@ -22,6 +22,9 @@ export interface AppConfig {
     anthropicApiKey: string;
     model: string;
   };
+  database: {
+    url: string;
+  };
 }
 
 function readConfig(): AppConfig {
@@ -46,6 +49,11 @@ function readConfig(): AppConfig {
     ai: {
       anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
       model: process.env.AI_MODEL ?? "claude-sonnet-4-6",
+    },
+    database: {
+      url:
+        process.env.DATABASE_URL ??
+        "postgresql://postgres:devpassword@localhost:5432/ai_code_review",
     },
   };
 }
