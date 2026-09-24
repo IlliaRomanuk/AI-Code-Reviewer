@@ -8,7 +8,21 @@ export async function findOrCreateUser(githubUserId: number, githubLogin: string
     .select()
     .from(users)
     .where(eq(users.githubUserId, githubUserId));
-  if (existing[0]) return existing[0];
+  const existingUser = existing[0];
+
+  if (existingUser) {
+    // Пользователь мог переименоваться на GitHub — держим login актуальным,
+    // а не замораживаем его значением на момент первого входа.
+    if (existingUser.githubLogin !== githubLogin) {
+      const [updated] = await db
+        .update(users)
+        .set({ githubLogin })
+        .where(eq(users.id, existingUser.id))
+        .returning();
+      return updated ?? existingUser;
+    }
+    return existingUser;
+  }
 
   const [created] = await db
     .insert(users)

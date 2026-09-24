@@ -13,13 +13,18 @@ const EXPIRES_IN = "7d";
 export function issueSessionCookie(payload: SessionPayload): {
   name: string;
   value: string;
-  options: { httpOnly: true; sameSite: "lax"; maxAge: number };
+  options: { httpOnly: true; sameSite: "lax"; secure: boolean; maxAge: number };
 } {
   const token = jwt.sign(payload, config.session.secret, { expiresIn: EXPIRES_IN });
   return {
     name: COOKIE_NAME,
     value: token,
-    options: { httpOnly: true, sameSite: "lax", maxAge: 7 * 24 * 60 * 60 * 1000 },
+    options: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: config.nodeEnv === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    },
   };
 }
 
