@@ -8,7 +8,7 @@ module.exports = tseslint.config(
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
   {
-    ignores: ["dist/**", "node_modules/**"],
+    ignores: ["dist/**", "node_modules/**", "frontend/**"],
   },
   {
     files: ["eslint.config.cjs"],
