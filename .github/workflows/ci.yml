@@ -41,6 +41,7 @@ jobs:
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npm run build
+      - run: npm run db:migrate
       - run: npm test
 
   frontend:

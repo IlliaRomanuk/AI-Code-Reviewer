@@ -27,20 +27,35 @@ export interface AppConfig {
   };
 }
 
+const DEV_DEFAULT_SESSION_SECRET = "dev-insecure-secret-change-me";
+// Плейсхолдеры, которые лежат прямо в открытом репозитории (.env.example,
+// эта функция) — с точки зрения безопасности они ничем не лучше пустого
+// значения: любой, кто читает публичный код проекта, их уже знает.
+const KNOWN_PLACEHOLDER_SECRETS = new Set([
+  DEV_DEFAULT_SESSION_SECRET,
+  "change-me-to-a-random-string", // значение по умолчанию в .env.example
+]);
+const MIN_SESSION_SECRET_LENGTH = 32;
+
 function readConfig(): AppConfig {
   const port = Number(process.env.PORT ?? 3000);
   const nodeEnv = (process.env.NODE_ENV as AppConfig["nodeEnv"]) ?? "development";
 
-  const sessionSecret = process.env.SESSION_SECRET ?? "dev-insecure-secret-change-me";
+  const sessionSecret = process.env.SESSION_SECRET ?? DEV_DEFAULT_SESSION_SECRET;
   const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET ?? "";
 
   if (nodeEnv === "production") {
     const problems: string[] = [];
-    if (
-      !process.env.SESSION_SECRET ||
-      sessionSecret === "dev-insecure-secret-change-me"
-    ) {
-      problems.push("SESSION_SECRET is missing or still set to its insecure dev default");
+    if (!process.env.SESSION_SECRET || KNOWN_PLACEHOLDER_SECRETS.has(sessionSecret)) {
+      problems.push(
+        "SESSION_SECRET is missing or still set to a placeholder value from the public repo " +
+          "(the internal dev default or .env.example's own placeholder)",
+      );
+    } else if (sessionSecret.length < MIN_SESSION_SECRET_LENGTH) {
+      problems.push(
+        `SESSION_SECRET is too short (${sessionSecret.length} chars, need >= ` +
+          `${MIN_SESSION_SECRET_LENGTH}) — generate one with: openssl rand -hex 32`,
+      );
     }
     if (!webhookSecret) {
       problems.push(
