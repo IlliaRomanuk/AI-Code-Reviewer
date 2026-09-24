@@ -9,7 +9,7 @@ export const webhooks = new Webhooks({
 });
 
 webhooks.on(
-  ["pull_request.opened", "pull_request.synchronize"],
+  ["pull_request.opened", "pull_request.reopened", "pull_request.synchronize"],
   async ({ id, name, payload }) => {
     const { pull_request: pr, repository, installation } = payload;
     console.log(

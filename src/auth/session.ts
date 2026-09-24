@@ -4,7 +4,6 @@ import { config } from "../config/env.js";
 export interface SessionPayload {
   githubLogin: string;
   githubUserId: number;
-  accessToken: string;
 }
 
 const COOKIE_NAME = "session";

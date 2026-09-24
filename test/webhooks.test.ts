@@ -42,4 +42,24 @@ describe("POST /webhooks/github", () => {
 
     expect(res.status).toBe(400);
   });
+
+  it("accepts a reopened PR event (not just opened/synchronize)", async () => {
+    const reopenedPayload = JSON.stringify({
+      action: "reopened",
+      number: 1,
+      pull_request: { number: 1, user: { id: 1, login: "someone" } },
+      repository: { full_name: "octo/demo", name: "demo", owner: { login: "octo" } },
+    });
+
+    const app = createApp();
+    const res = await request(app)
+      .post("/webhooks/github")
+      .set("Content-Type", "application/json")
+      .set("X-GitHub-Event", "pull_request")
+      .set("X-GitHub-Delivery", "test-delivery-reopened")
+      .set("X-Hub-Signature-256", sign(reopenedPayload))
+      .send(reopenedPayload);
+
+    expect(res.status).toBe(200);
+  });
 });

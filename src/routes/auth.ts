@@ -73,7 +73,6 @@ authRouter.get("/auth/github/callback", async (req: Request, res: Response) => {
     const cookie = issueSessionCookie({
       githubLogin: user.login,
       githubUserId: user.id,
-      accessToken: authentication.token,
     });
     res.cookie(cookie.name, cookie.value, cookie.options);
     res.redirect(config.frontendUrl);
