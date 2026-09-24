@@ -9,13 +9,17 @@ export interface SessionPayload {
 
 const COOKIE_NAME = "session";
 const EXPIRES_IN = "7d";
+const JWT_ALGORITHM = "HS256";
 
 export function issueSessionCookie(payload: SessionPayload): {
   name: string;
   value: string;
   options: { httpOnly: true; sameSite: "lax"; secure: boolean; maxAge: number };
 } {
-  const token = jwt.sign(payload, config.session.secret, { expiresIn: EXPIRES_IN });
+  const token = jwt.sign(payload, config.session.secret, {
+    expiresIn: EXPIRES_IN,
+    algorithm: JWT_ALGORITHM,
+  });
   return {
     name: COOKIE_NAME,
     value: token,
@@ -33,7 +37,9 @@ export function readSessionCookie(
 ): SessionPayload | null {
   if (!cookieValue) return null;
   try {
-    return jwt.verify(cookieValue, config.session.secret) as SessionPayload;
+    return jwt.verify(cookieValue, config.session.secret, {
+      algorithms: [JWT_ALGORITHM],
+    }) as SessionPayload;
   } catch {
     return null;
   }

@@ -6,6 +6,7 @@ import { parseReviewResponse } from "./parseResponse.js";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const MAX_TOKENS = 4096;
+const REQUEST_TIMEOUT_MS = 60_000;
 
 interface AnthropicMessageResponse {
   content: Array<{ type: string; text?: string }>;
@@ -31,6 +32,9 @@ async function callAnthropic(userPrompt: string): Promise<string> {
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userPrompt }],
     }),
+    // Без таймаута зависший сетевой запрос повесит обработку вебхука
+    // навсегда — GitHub App просто перестанет отвечать на новые PR.
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
 
   if (!response.ok) {

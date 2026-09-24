@@ -38,30 +38,36 @@ export async function saveReview(params: {
   pullNumber: number;
   comments: ReviewComment[];
 }) {
-  const [review] = await db
-    .insert(reviews)
-    .values({
-      userId: params.userId,
-      repoFullName: params.repoFullName,
-      pullNumber: params.pullNumber,
-      commentCount: params.comments.length,
-    })
-    .returning();
+  // Транзакция: без неё сбой второго insert (reviewComments) после
+  // успешного первого (reviews) оставляет "осиротевшую" запись ревью с
+  // commentCount, не совпадающим с реальным количеством сохранённых
+  // комментариев — данные рассинхронизируются.
+  return db.transaction(async (tx) => {
+    const [review] = await tx
+      .insert(reviews)
+      .values({
+        userId: params.userId,
+        repoFullName: params.repoFullName,
+        pullNumber: params.pullNumber,
+        commentCount: params.comments.length,
+      })
+      .returning();
 
-  if (!review) throw new Error("Failed to create review row");
+    if (!review) throw new Error("Failed to create review row");
 
-  if (params.comments.length > 0) {
-    await db.insert(reviewComments).values(
-      params.comments.map((c) => ({
-        reviewId: review.id,
-        filename: c.filename,
-        line: c.line ?? null,
-        body: c.body,
-      })),
-    );
-  }
+    if (params.comments.length > 0) {
+      await tx.insert(reviewComments).values(
+        params.comments.map((c) => ({
+          reviewId: review.id,
+          filename: c.filename,
+          line: c.line ?? null,
+          body: c.body,
+        })),
+      );
+    }
 
-  return review;
+    return review;
+  });
 }
 
 export async function listReviewsForUser(userId: number) {

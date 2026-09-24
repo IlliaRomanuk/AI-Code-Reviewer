@@ -31,18 +31,42 @@ function readConfig(): AppConfig {
   const port = Number(process.env.PORT ?? 3000);
   const nodeEnv = (process.env.NODE_ENV as AppConfig["nodeEnv"]) ?? "development";
 
+  const sessionSecret = process.env.SESSION_SECRET ?? "dev-insecure-secret-change-me";
+  const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET ?? "";
+
+  if (nodeEnv === "production") {
+    const problems: string[] = [];
+    if (
+      !process.env.SESSION_SECRET ||
+      sessionSecret === "dev-insecure-secret-change-me"
+    ) {
+      problems.push("SESSION_SECRET is missing or still set to its insecure dev default");
+    }
+    if (!webhookSecret) {
+      problems.push(
+        "GITHUB_WEBHOOK_SECRET is missing — webhook signature checks are unsafe",
+      );
+    }
+    if (problems.length > 0) {
+      throw new Error(
+        `Refusing to start in production with insecure config:\n- ${problems.join("\n- ")}\n` +
+          "Set these in your environment (or .env) before starting the server.",
+      );
+    }
+  }
+
   return {
     port,
     nodeEnv,
     frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:5173",
     session: {
-      secret: process.env.SESSION_SECRET ?? "dev-insecure-secret-change-me",
+      secret: sessionSecret,
     },
     github: {
       appId: process.env.GITHUB_APP_ID ?? "",
       // .env stores the PEM with literal \n — convert back to real newlines
       privateKey: (process.env.GITHUB_APP_PRIVATE_KEY ?? "").replace(/\\n/g, "\n"),
-      webhookSecret: process.env.GITHUB_WEBHOOK_SECRET ?? "",
+      webhookSecret,
       clientId: process.env.GITHUB_APP_CLIENT_ID ?? "",
       clientSecret: process.env.GITHUB_APP_CLIENT_SECRET ?? "",
     },
